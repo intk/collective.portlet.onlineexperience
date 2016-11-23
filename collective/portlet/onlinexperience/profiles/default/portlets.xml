@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<portlets
+    xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+    i18n:domain="plone">
+
+ <!-- Portlet type registrations -->
+ <portlet
+   addview="collective.portlet.onlineexperience.OnlineExperience"
+   title="Online Experience portlet"
+   description="A portlet that renders the onlineexperience"
+   i18n:attributes="title;
+                    description"
+   />
+
+</portlets>

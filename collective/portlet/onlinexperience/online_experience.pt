@@ -1,0 +1,197 @@
+<div class="portlet portletSlideshow"
+    i18n:domain="plone"
+    tal:define="collection_url view/collection_url;
+                plone_view context/@@plone;
+                toLocalizedTime nocall:plone_view/toLocalizedTime;
+                viewActions here/portal_properties/site_properties/typesUseViewActionInListings|python:();"
+    tal:attributes="class string:portlet portletSlideshow ${view/css_class}">
+
+    <div class="carousel" id="slickcarousel" tal:attributes="data-url collection_url">
+        <div class="carousel-wrapper">
+            <div class="slideshow-wrapper">
+                <tal:events tal:repeat="obj view/results">
+                    <tal:definitions 
+                        tal:define="item_type obj/portal_type;
+                                    obj_id obj/getId;
+                                    obj_brain obj/_brain;
+                                    obj_uid obj/UID;
+                                    item_title obj/Title;
+                                    item_description obj/Description;
+                                    first repeat/obj/start">
+                        
+                        <tal:isobject tal:condition="python: item_type in ['Object', 'Event', 'Exhibition', 'Document', 'Image']"
+                            tal:define="item_img python:view.getLeadMediaURL(obj);">
+                            
+                            <tal:hasimage tal:condition="python: item_img != None">
+                                
+                                <div tal:define="item_url obj/getURL;
+                                                 item_path obj_brain/getPath|nothing;
+                                                 item_index repeat/obj/index;
+                                                 item_id obj_brain/getId|nothing;"
+
+                                    tal:attributes="data-title python: item_title; 
+                                                    data-description python: item_description; 
+                                                    data-url python: item_url;
+                                                    data-path python: item_path;
+                                                    data-id python: item_id;
+                                                    data-index python: item_index;
+                                                    class python: 'carousel-item first-slide' if first else 'carousel-item'" 
+                                                    >
+                                        
+                                        <tal:slideshowbtn tal:condition="first">
+                                            <div tal:condition="view/data/show_more" class="slideshow-btn-wrapper">
+                                                <input id="slideshow-btn" type="submit" class="btn btn-default" tal:attributes="value view/data/header"/>
+                                            </div>
+                                            <div class="slideshow-btn-down"></div>
+                                        </tal:slideshowbtn>
+
+                                        <tal:containsaudio tal:define="audio_file python: view.getAudioFile(obj.getObject())">
+                                            
+                                            <div tal:condition="python: audio_file != None"
+                                                tal:define="audio_url python: view.getAudioURL(audio_file);
+                                                            audio_contenttype python: 'audio/mp3'">
+
+                                                <div class="hi-icon-wrap hi-icon-effect-8">
+                                                    <span class="play-button hi-icon hi-icon-volume-off"></span>
+                                                </div>
+                                                            
+                                                <audio controls class="audio-player">
+                                                    <source src="" type="*/*"
+                                                        tal:attributes="src audio_url; type audio_contenttype;" />
+                                                    <object width="" height=""
+                                                      type="application/x-shockwave-flash"
+                                                      data="++resource++collective.mediaelementjs/flashmediaelement.swf">
+                                                        <param name="audio" value="++resource++collective.mediaelementjs/flashmediaelement.swf" />
+                                                        <param name="flashvars" value="" tal:attributes="value python:'file=%s' % audio_url" />
+                                                    </object>
+                                                </audio>
+                                            </div>
+
+                                        </tal:containsaudio>
+
+                                        <div class="carousel-image-wrapper">
+                                           <img
+                                                 src="" alt=""
+                                                 tal:attributes="src item_img; class python:'carousel-image';" /> 
+                                        </div>
+                                        
+                                </div>
+
+                            </tal:hasimage>
+                        </tal:isobject>
+
+                        <tal:islink tal:condition="python: item_type == 'Link'">
+
+                            <div tal:define="item_url obj/getURL;
+                                            remoteURL obj_brain/getRemoteUrl;
+                                            item_img python:view.getLeadMediaURL(obj);
+                                            item_path obj_brain/getPath|nothing;
+                                            item_index repeat/obj/index;
+                                            item_id obj_brain/getId|nothing;"
+
+                                            tal:attributes="data-title python: item_title; 
+                                                            data-description python: item_description; 
+                                                            data-url python: item_url;
+                                                            data-path python: item_path;
+                                                            data-id python: item_id;
+                                                            data-index python: item_index;" 
+
+                                                            class="carousel-item video-slide">
+
+                                    <tal:firstslide>
+                                        <tal:slideshowbtn tal:condition="first">
+                                            <div tal:condition="view/data/show_more" class="slideshow-btn-wrapper">
+                                                <a href="/nl/plan-je-bezoek" id="slideshow-btn" type="submit" class="btn btn-default">Plan je bezoek</a>
+                                                <a href="/nl/garbage/online-experience" id="slideshow-btn" type="submit" class="btn btn-default">Ontdek Zeeland</a>
+                                            </div>
+                                        </tal:slideshowbtn>
+
+                                        <tal:usepicture tal:condition="python: item_img != None">
+                                            <div class="video-play-btn"></div>
+
+                                            <tal:slideshowbtn tal:condition="first">
+                                                <div tal:condition="view/data/show_dates" class="slideshow-btn-down"></div>
+                                            </tal:slideshowbtn>
+
+                                            <div class="carousel-image-wrapper">
+                                                <img src="" alt="" tal:attributes="src item_img; class python:'overlay-image';" />
+                                            </div>
+
+                                            <iframe frameborder="0" allowfullscreen tal:attributes="id obj_id; src remoteURL" class="video-iframe with-overlay"></iframe>
+                                        </tal:usepicture>
+                                        
+                                        <tal:nopicture tal:condition="python: item_img == None">
+                                            <iframe frameborder="0" allowfullscreen tal:attributes="id obj_id; src remoteURL" class="video-iframe without-overlay"></iframe>
+                                        </tal:nopicture>
+
+                                    </tal:firstslide>
+                            </div>
+                        </tal:islink>
+
+                        <tal:isstreetview tal:condition="python: item_type == 'StreetView'">
+
+                            <tal:streetview_settings tal:define="streetview_settings python:view.getStreetViewOptions(obj);
+                                                                item_path obj_brain/getPath|nothing;
+                                                                item_index repeat/obj/index;
+                                                                item_id obj_brain/getId|nothing;
+                                                                item_url obj_brain/getURL|nothing;"
+                                >
+                                    <div class="carousel-item"
+                                        tal:attributes="
+                                            data-title python: item_title; 
+                                            data-description python: item_description; 
+                                            data-url python: item_url;
+                                            data-path python: item_path;
+                                            data-id python: item_id;
+                                            data-index python: item_index;" 
+                                        >
+                                        <tal:containsaudio tal:define="audio_file python: view.getAudioFile(obj.getObject())">
+                                        <div tal:condition="python: audio_file != None"
+                                            tal:define="audio_url python: view.getAudioURL(audio_file);
+                                                        audio_contenttype python: 'audio/mp3';">
+                                            
+                                            <div class="hi-icon-wrap hi-icon-effect-8">
+                                                <span class="play-button hi-icon hi-icon-volume-off"></span>
+                                            </div>
+
+                                            <audio controls class="audio-player">
+                                                <source src="" type="*/*"
+                                                    tal:attributes="src audio_url; type audio_contenttype" />
+                                                <object width="" height=""
+                                                  type="application/x-shockwave-flash"
+                                                  data="++resource++collective.mediaelementjs/flashmediaelement.swf">
+                                                    <param name="audio" value="++resource++collective.mediaelementjs/flashmediaelement.swf" />
+                                                    <param name="flashvars" value="" tal:attributes="value python:'file=%s' % audio_url" />
+                                                </object>
+                                            </audio>
+                                        </div>
+                                    </tal:containsaudio>
+
+                                    <div id="street-view" class="street-view" 
+                                        tal:condition="streetview_settings"
+                                        tal:attributes="data-lat python:streetview_settings.get('lat', '');
+                                                     data-lng python:streetview_settings.get('lng', '');
+                                                     data-heading python:streetview_settings.get('heading', '');
+                                                     data-pitch python:streetview_settings.get('pitch', '');
+                                                     data-zoom python:streetview_settings.get('zoom', '');
+                                                     data-addressControl python:streetview_settings.get('addressControl', '');
+                                                     data-headingLower python:streetview_settings.get('headingLower', '');
+                                                     data-zoomControl python:streetview_settings.get('zoomControl', '');
+                                                     data-linksControl python:streetview_settings.get('linksControl', '');
+                                                     data-panControl python:streetview_settings.get('panControl', '');
+                                                     data-enableCloseButton python:streetview_settings.get('enableCloseButton', '');
+                                                     data-fullscreenControl python:streetview_settings.get('fullscreenControl', '');
+                                                     data-uid obj_uid;
+                                                     "
+                                                     >
+                                    </div>
+                                    
+                                    </div>
+                            </tal:streetview_settings>
+                        </tal:isstreetview>
+                    </tal:definitions>
+                </tal:events>
+            </div> 
+        </div> 
+    </div> 
+</div>
