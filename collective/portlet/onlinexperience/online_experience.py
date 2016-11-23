@@ -18,6 +18,10 @@ import json
 import os
 import pkg_resources
 
+from zope.contentprovider.interfaces import IContentProvider
+from plone.event.interfaces import IEvent
+from zope.component import getMultiAdapter
+
 COLLECTIONS = []
 
 try:
@@ -161,6 +165,32 @@ class Renderer(base.Renderer):
         header = self.data.header
         normalizer = getUtility(IIDNormalizer)
         return "portlet-onlineexperience-%s" % normalizer.normalize(header)
+
+    def getImageObject(self, item):
+        if item.portal_type == "Image":
+            return item.getURL()+"/@@images/image/mini"
+        if item.leadMedia != None:
+            uuid = item.leadMedia
+            media_object = uuidToCatalogBrain(uuid)
+            if media_object:
+                return media_object.getURL()+"/@@images/image/mini"
+            else:
+                return None
+        else:
+            return None
+
+    def is_event(self, obj):
+        if getattr(obj, 'getObject', False):
+            obj = obj.getObject()
+        return IEvent.providedBy(obj)
+
+    def formatted_date(self, obj):
+        item = obj.getObject()
+        provider = getMultiAdapter(
+            (self.context, self.request, self),
+            IContentProvider, name='formatted_date'
+        )
+        return provider(item)
 
     @memoize
     def results(self):
